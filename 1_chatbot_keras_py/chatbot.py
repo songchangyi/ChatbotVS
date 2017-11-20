@@ -31,14 +31,14 @@ file_saved_answer = 'saved_answer'
 name_of_computer = 'ChatbotVS'
 
 # greedy decode algorithm
-def greedy_decoder(input):
+def greedy_decoder(input): # input is a tokenized
 
     flag = 0
     prob = 1
     ans_partial = np.zeros((1,maxlen_input))
     ans_partial[0, -1] = 2  #  the index of the symbol BOS (begin of sentence)
     for k in range(maxlen_input - 1):
-        ye = model.predict([input, ans_partial])
+        ye = model.predict([input, ans_partial]) # use the model to predict the partial answer
         yel = ye[0,:]
         p = np.max(yel)
         mp = np.argmax(ye)
@@ -54,9 +54,9 @@ def greedy_decoder(input):
         if k < (dictionary_size-2):
             w = vocabulary[k]
             text = text + w[0] + ' '
-    return(text, prob)
+    return(text, prob) # return the reply text and its probability
 	
-# preprocessing
+# preprocessing the raw sentence
 def preprocess(raw_word, name):
     
     l1 = ['won’t','won\'t','wouldn’t','wouldn\'t','’m', '’re', '’ve', '’ll', '’s','’d', 'n’t', '\'m', '\'re', '\'ve', '\'ll', '\'s', '\'d', 'can\'t', 'n\'t', 'B: ', 'A: ', ',', ';', '.', '?', '!', ':', '. ?', ',   .', '. ,', 'EOS', 'BOS', 'eos', 'bos']
@@ -65,19 +65,19 @@ def preprocess(raw_word, name):
     l4 = ['jeffrey','fred','benjamin','paula','walter','rachel','andy','helen','harrington','kathy','ronnie','carl','annie','cole','ike','milo','cole','rick','johnny','loretta','cornelius','claire','romeo','casey','johnson','rudy','stanzi','cosgrove','wolfi','kevin','paulie','cindy','paulie','enzo','mikey','i\97','davis','jeffrey','norman','johnson','dolores','tom','brian','bruce','john','laurie','stella','dignan','elaine','jack','christ','george','frank','mary','amon','david','tom','joe','paul','sam','charlie','bob','marry','walter','james','jimmy','michael','rose','jim','peter','nick','eddie','johnny','jake','ted','mike','billy','louis','ed','jerry','alex','charles','tommy','bobby','betty','sid','dave','jeffrey','jeff','marty','richard','otis','gale','fred','bill','jones','smith','mickey']    
 
     raw_word = raw_word.lower()
-    raw_word = raw_word.replace(', ' + name_of_computer, '')
+    raw_word = raw_word.replace(', ' + name_of_computer, '') # replace the computer name within the raw word
     raw_word = raw_word.replace(name_of_computer + ' ,', '')
 
     for j, term in enumerate(l1):
-        raw_word = raw_word.replace(term,l2[j])
+        raw_word = raw_word.replace(term,l2[j]) # clean the symbols
         
     for term in l3:
         raw_word = raw_word.replace(term,' ')
     
     for term in l4:
-        raw_word = raw_word.replace(', ' + term, ', ' + name)
+        raw_word = raw_word.replace(', ' + term, ', ' + name) # replace the actor/actress's name with user name
         raw_word = raw_word.replace(' ' + term + ' ,' ,' ' + name + ' ,')
-        raw_word = raw_word.replace('i am ' + term, 'i am ' + name_of_computer)
+        raw_word = raw_word.replace('i am ' + term, 'i am ' + name_of_computer) 
         raw_word = raw_word.replace('my name is' + term, 'my name is ' + name_of_computer)
     
     for j in range(30):
@@ -110,7 +110,7 @@ def tokenize(sentences):
     X = np.asarray([word_to_index[w] for w in tokenized_sentences])
     s = X.size
     Q = np.zeros((1,maxlen_input))
-    if s < (maxlen_input + 1):
+    if s < (maxlen_input + 1): # if the input size do not pass the max length limit
         Q[0,- s:] = X
     else:
         Q[0,:] = X[- maxlen_input:]
@@ -130,30 +130,33 @@ print('Starting the model...')
 # Keras model of the chatbot: 
 # *******************************************************************
 
-ad = Adam(lr=0.00005) 
+ad = Adam(lr=0.00005) # Adam optimizer, lr is the learning rate
 
 input_context = Input(shape=(maxlen_input,), dtype='int32', name='the_context_text')
 input_answer = Input(shape=(maxlen_input,), dtype='int32', name='the_answer_text_up_to_the_current_token')
+# The LSTM encoder and decoder
 LSTM_encoder = LSTM(sentence_embedding_size, init= 'lecun_uniform', name='Encode_context')
 LSTM_decoder = LSTM(sentence_embedding_size, init= 'lecun_uniform', name='Encode_answer_up_to_the_current_token')
+# The shared embedding layer
 if os.path.isfile(weights_file):
     Shared_Embedding = Embedding(output_dim=word_embedding_size, input_dim=dictionary_size, input_length=maxlen_input, name='Shared')
 else:
     Shared_Embedding = Embedding(output_dim=word_embedding_size, input_dim=dictionary_size, weights=[embedding_matrix], input_length=maxlen_input, name='Shared')
+# Apply LSTM with embedding layer
 word_embedding_context = Shared_Embedding(input_context)
 context_embedding = LSTM_encoder(word_embedding_context)
 
 word_embedding_answer = Shared_Embedding(input_answer)
 answer_embedding = LSTM_decoder(word_embedding_answer)
-
+# Merge layer
 merge_layer = merge([context_embedding, answer_embedding], mode='concat', concat_axis=1, name='concatenate_the_embeddings_of_the_context_and_the_answer_up_to_current_token')
 out = Dense(int(dictionary_size/2), activation="relu", name='relu_activation')(merge_layer)
 out = Dense(dictionary_size, activation="softmax", name='likelihood_of_the_current_token_using_softmax_activation')(out)
-
+# Create the model and compile
 model = Model(input=[input_context, input_answer], output = [out])
 
 model.compile(loss='categorical_crossentropy', optimizer=ad)
-
+# Loading the weights file
 if os.path.isfile(weights_file):
     model.load_weights(weights_file)
 
@@ -175,8 +178,8 @@ print('computer: Hi ! Please type your name.\n')
 name = input('user: ')
 print('computer: Hi , ' + name +' ! My name is ' + name_of_computer + '.\n') 
 
-while que != 'exit.':
-    
+while que != 'exit.': # Use 'exit.' to quit
+    # Get the user input and clean
     que = input('user: ')
     que = preprocess(que, name_of_computer)
     # Collecting data for training:
@@ -185,7 +188,7 @@ while que != 'exit.':
     qf.write(q + '\n')
     af.write(a + '\n')
     # Composing the context:
-    if prob > 0.2:
+    if prob > 0.2: # If the prob > 2, add the last text to get a better match
         query = text + ' ' + que
     else:    
         query = que
@@ -196,9 +199,9 @@ while que != 'exit.':
     
     # Using the trained model to predict the answer:
     
-    predout, prob = greedy_decoder(Q[0:1])
-    start_index = predout.find('EOS')
-    text = preprocess(predout[0:start_index], name)
+    predout, prob = greedy_decoder(Q[0:1]) # Get the first row as predict output and the second row as their probs
+    start_index = predout.find('EOS') # Get the end of the output
+    text = preprocess(predout[0:start_index], name) # Extract the output and clean
     print ('computer: ' + text + '    (with probability of %f)'%prob)
     
     last_last_query = last_query    
