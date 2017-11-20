@@ -9,7 +9,7 @@ Date: 2017/11/19
 <div align=center><img width="500" src="/img/Flowgram.PNG"/></div>
 
 ## 1. Introduction
-Chat bots using AI technique have driven many attentions not only in academic fields but also in business areas. A Chat bot can work as a virtual assistant in customer service, consulting services and smart conversations, etc. Here we are going to develop a chat bot using movie subtitles downloaded from the internet. Since the project is an open-end task, we can analyze it in different aspects or different scopes and multiple solutions are available.
+Chat bots using AI technique have driven many attentions not only in academic fields but also in business areas. A Chat bot can work as a virtual assistant in customer services, consulting services and smart conversations, etc. Here we are going to develop a chat bot using movie subtitles downloaded from the internet. Since the project is an open-end task, we can analyze it in different aspects or different scopes and multiple solutions are available.
 
 First, intuitively we think a chat bot using movie subtitles means it can return the exact following subtitle of a movie from which we give choose a sentence for test. For this type of chat bots, the most common technique is by using string-matching algorithm. Among a corpus of movie subtitles download from the internet, we find the sentence best matching the given sentence and return directly the following sentence to the system. Even though it is not so intelligent, it is the basic and simplest way to create a chat bot. There I will briefly introduce it in the following chapter.
 
